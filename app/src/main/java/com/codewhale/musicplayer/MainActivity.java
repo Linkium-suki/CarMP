@@ -36,12 +36,20 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST = 100;
 
+    // Left: song list
     private RecyclerView recyclerView;
     private SongAdapter adapter;
     private ProgressBar progressBar;
     private TextView emptyText;
 
-    // Player bar
+    // Right: now-playing preview panel
+    private View nowPlayingPanel;
+    private ImageView npPreviewArt;
+    private TextView npPreviewTitle, npPreviewArtist;
+    private ImageButton npQuickPrev, npQuickPlay, npQuickNext;
+    private TextView npOpenFull;
+
+    // Bottom mini player bar
     private View playerBar;
     private ImageView albumArt;
     private TextView songTitle, songArtist;
@@ -60,10 +68,10 @@ public class MainActivity extends AppCompatActivity {
         initViews();
         initRecyclerView();
         initPlayerBar();
+        initNowPlayingPanel();
 
         playlist = new Playlist();
 
-        // Request permissions and scan
         if (hasStoragePermission()) {
             scanMedia();
         } else {
@@ -80,15 +88,14 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onPlayingChanged(boolean playing) {
                     btnPlay.setImageResource(playing
-                        ? R.drawable.ic_pause
-                        : R.drawable.ic_play);
+                        ? R.drawable.ic_pause : R.drawable.ic_play);
+                    npQuickPlay.setImageResource(playing
+                        ? R.drawable.ic_pause : R.drawable.ic_play);
                 }
-
                 @Override
                 public void onSongChanged(Song song) {
                     updateNowPlaying(song);
                 }
-
                 @Override
                 public void onPositionChanged(int position, int duration) {
                     // handled by seek bar binding
@@ -109,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Handle file open from other apps
         if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             String path = intent.getData().getPath();
             if (path != null) {
@@ -130,6 +136,15 @@ public class MainActivity extends AppCompatActivity {
         progressBar  = findViewById(R.id.progress_bar);
         emptyText    = findViewById(R.id.text_empty);
 
+        nowPlayingPanel  = findViewById(R.id.now_playing_panel);
+        npPreviewArt     = findViewById(R.id.np_preview_art);
+        npPreviewTitle   = findViewById(R.id.np_preview_title);
+        npPreviewArtist  = findViewById(R.id.np_preview_artist);
+        npQuickPrev      = findViewById(R.id.np_quick_prev);
+        npQuickPlay      = findViewById(R.id.np_quick_play);
+        npQuickNext      = findViewById(R.id.np_quick_next);
+        npOpenFull       = findViewById(R.id.np_open_full);
+
         playerBar  = findViewById(R.id.player_bar);
         albumArt   = findViewById(R.id.img_album_art);
         songTitle  = findViewById(R.id.text_song_title);
@@ -148,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(new SongAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Song song, int position) {
-                // Sync playlist index
                 playlist.setCurrentIndex(position);
                 playSong(position);
             }
@@ -157,57 +171,83 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
-    private void initPlayerBar() {
-        btnPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    private void initNowPlayingPanel() {
+        npQuickPlay.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
                 if (controller != null) controller.toggle();
             }
         });
-
-        btnPrev.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        npQuickPrev.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
                 if (controller != null) controller.previous();
             }
         });
-
-        btnNext.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        npQuickNext.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
                 if (controller != null) controller.next();
             }
         });
+        npOpenFull.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                openNowPlaying();
+            }
+        });
+        nowPlayingPanel.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                openNowPlaying();
+            }
+        });
+    }
 
+    private void initPlayerBar() {
+        btnPlay.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (controller != null) controller.toggle();
+            }
+        });
+        btnPrev.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (controller != null) controller.previous();
+            }
+        });
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (controller != null) controller.next();
+            }
+        });
         btnRepeat.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            @Override public void onClick(View v) {
                 playlist.cycleRepeatMode();
                 updateRepeatButton();
             }
         });
-
         btnShuffle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            @Override public void onClick(View v) {
                 playlist.setShuffle(!playlist.isShuffle());
                 updateShuffleButton();
             }
         });
-
         playerBar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Expand player or go to now-playing
+            @Override public void onClick(View v) {
                 Song current = playlist.current();
                 if (current != null && current.isVideo()) {
                     Intent intent = new Intent(MainActivity.this, VideoPlayerActivity.class);
                     intent.putExtra("filePath", current.filePath);
                     intent.putExtra("title", current.getDisplayTitle());
                     startActivity(intent);
+                } else {
+                    openNowPlaying();
                 }
             }
         });
+    }
+
+    // ── Now Playing ─────────────────────────────────────────────────────
+
+    private void openNowPlaying() {
+        Intent intent = new Intent(this, NowPlayingActivity.class);
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     // ── Permission ──────────────────────────────────────────────────────
@@ -224,12 +264,10 @@ public class MainActivity extends AppCompatActivity {
     private void requestStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ActivityCompat.requestPermissions(this,
-                new String[]{ Manifest.permission.READ_MEDIA_AUDIO },
-                PERMISSION_REQUEST);
+                new String[]{ Manifest.permission.READ_MEDIA_AUDIO }, PERMISSION_REQUEST);
         } else {
             ActivityCompat.requestPermissions(this,
-                new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE },
-                PERMISSION_REQUEST);
+                new String[]{ Manifest.permission.READ_EXTERNAL_STORAGE }, PERMISSION_REQUEST);
         }
     }
 
@@ -255,14 +293,11 @@ public class MainActivity extends AppCompatActivity {
         emptyText.setVisibility(View.GONE);
 
         FileScanner.scan(this, new FileScanner.ScanCallback() {
-            @Override
-            public void onProgress(int found, int total) {}
-
+            @Override public void onProgress(int found, int total) {}
             @Override
             public void onComplete(List<Song> songs) {
                 runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
                         progressBar.setVisibility(View.GONE);
                         playlist.clear();
                         playlist.addAll(songs);
@@ -274,12 +309,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
-
             @Override
             public void onError(String message) {
                 runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                    @Override public void run() {
                         progressBar.setVisibility(View.GONE);
                         Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
                     }
@@ -291,7 +324,6 @@ public class MainActivity extends AppCompatActivity {
     // ── Playback ────────────────────────────────────────────────────────
 
     private void playSong(int index) {
-        // Start and bind to service
         Intent serviceIntent = new Intent(this, MusicService.class);
         startService(serviceIntent);
 
@@ -302,7 +334,6 @@ public class MainActivity extends AppCompatActivity {
                 svc.playAtIndex(index);
             }
         } else {
-            // Service not yet bound — play directly
             Intent intent = new Intent(this, MusicService.class);
             intent.setAction(MusicService.ACTION_PLAY_SONG);
             intent.putExtra(MusicService.EXTRA_INDEX, index);
@@ -312,33 +343,37 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateNowPlaying(Song song) {
         if (song == null) return;
+
+        // Bottom mini bar
         songTitle.setText(song.getDisplayTitle());
         songArtist.setText(song.getDisplayArtist());
         playerBar.setVisibility(View.VISIBLE);
 
-        // Load album art
-        if (song.albumArt != null) {
+        // Right panel
+        npPreviewTitle.setText(song.getDisplayTitle());
+        npPreviewArtist.setText(song.getDisplayArtist());
+
+        // Album art
+        if (song.albumArt != null && song.albumArt.length > 0) {
             ImageLoader.loadAlbumArt(song.albumArt, albumArt, R.drawable.ic_music_note);
+            ImageLoader.loadAlbumArt(song.albumArt, npPreviewArt, R.drawable.ic_music_note);
         } else {
             albumArt.setImageResource(R.drawable.ic_music_note);
+            npPreviewArt.setImageResource(R.drawable.ic_music_note);
+        }
+
+        // Highlight current song in list
+        int idx = playlist.getCurrentIndex();
+        if (idx >= 0) {
+            recyclerView.smoothScrollToPosition(idx);
         }
     }
 
     private void updateRepeatButton() {
-        switch (playlist.getRepeatMode()) {
-            case Playlist.REPEAT_OFF:
-                btnRepeat.setImageResource(R.drawable.ic_repeat);
-                btnRepeat.setAlpha(0.4f);
-                break;
-            case Playlist.REPEAT_ALL:
-                btnRepeat.setImageResource(R.drawable.ic_repeat);
-                btnRepeat.setAlpha(1.0f);
-                break;
-            case Playlist.REPEAT_ONE:
-                btnRepeat.setImageResource(R.drawable.ic_repeat_one);
-                btnRepeat.setAlpha(1.0f);
-                break;
-        }
+        int mode = playlist.getRepeatMode();
+        btnRepeat.setImageResource(mode == Playlist.REPEAT_ONE
+            ? R.drawable.ic_repeat_one : R.drawable.ic_repeat);
+        btnRepeat.setAlpha(mode == Playlist.REPEAT_OFF ? 0.4f : 1.0f);
     }
 
     private void updateShuffleButton() {

@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Audio/Video features (not required — works on head units without cameras) -->
+    <!-- Audio/Video features (not required) -->
     <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
@@ -26,13 +26,13 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:screenOrientation="sensorLandscape"
             android:launchMode="singleTop"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- Open audio/video files from file manager -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -40,10 +40,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Now Playing — SPlayer-style album art + lyrics -->
+        <activity
+            android:name=".NowPlayingActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.MusicPlayer.NowPlaying"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
         <!-- Video player — fullscreen video playback -->
         <activity
             android:name=".VideoPlayerActivity"
             android:exported="false"
+            android:screenOrientation="sensorLandscape"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:theme="@style/Theme.MusicPlayer.Video" />
 

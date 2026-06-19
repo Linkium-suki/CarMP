@@ -51,6 +51,7 @@ public class MusicService extends Service
     public static final String EXTRA_INDEX       = "index";
     public static final String EXTRA_REPEAT      = "repeat";
     public static final String EXTRA_SHUFFLE     = "shuffle";
+    public static final String EXTRA_LYRICS      = "lyrics";
 
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "music_player";
@@ -309,6 +310,9 @@ public class MusicService extends Service
             Song current = playlist.current();
             if (current != null) {
                 intent.putExtra(EXTRA_SONG, current);
+                if (current.lyrics != null && !current.lyrics.isEmpty()) {
+                    intent.putExtra(EXTRA_LYRICS, current.lyrics);
+                }
             }
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

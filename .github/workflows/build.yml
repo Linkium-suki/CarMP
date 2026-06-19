@@ -24,25 +24,36 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Install Gradle 8.5
+        run: |
+          curl -sSLO https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          sudo unzip -q -d /opt/gradle gradle-8.5-bin.zip
+          echo "/opt/gradle/gradle-8.5/bin" >> $GITHUB_PATH
+
+      - name: Generate Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.5 --no-daemon
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Build Release APK (unsigned)
-        run: ./gradlew assembleRelease
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Upload Debug APK artifact
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Release APK artifact
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-unsigned
@@ -57,7 +68,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Download artifacts
+      - name: Download Release APK
         uses: actions/download-artifact@v4
         with:
           name: app-release-unsigned
@@ -66,31 +77,33 @@ jobs:
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
           mv app-release-unsigned.apk "MusicPlayer-${TAG_NAME}.apk"
+          echo "APK=MusicPlayer-${TAG_NAME}.apk" >> $GITHUB_ENV
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "MusicPlayer ${{ github.ref_name }}"
           body: |
-            ## MusicPlayer ${{ github.ref_name }}
+            ## 🎵 MusicPlayer ${{ github.ref_name }}
 
             Lightweight audio/video player for Android 4.0+ (API 14).
             Full ID3 tag support (v1, v2.2, v2.3, v2.4).
 
             ### Features
-            - Full ID3 tag parsing with album art extraction
-            - Audio & video playback
-            - Background music service
-            - Playlist with shuffle & repeat
-            - Clean Material Design UI
-            - Minimal APK size
+            - ✅ Full ID3 tag parsing with album art extraction
+            - ✅ Audio & video playback
+            - ✅ Background music service with notification
+            - ✅ Playlist with shuffle & repeat
+            - ✅ Clean Material Design green theme
+            - ✅ Minimal APK size (zero external deps)
+            - ✅ Android 4.0 (API 14) or higher
 
             ### Requirements
-            - Android 4.0 (API 14) or higher
+            - Android 4.0 (Ice Cream Sandwich) or higher
             - Storage permission for media scanning
 
-            > **Note:** This APK is unsigned. For production use, sign with your own keystore.
+            > ⚠️ This APK is **unsigned**. For production use, sign with your own keystore.
           draft: false
           prerelease: false
           files: |
-            MusicPlayer-*.apk
+            ${{ env.APK }}

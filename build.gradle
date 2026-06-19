@@ -1,0 +1,4 @@
+// Top-level build file for MusicPlayer (Android 4.0+ / API 14+)
+plugins {
+    id 'com.android.application' version '8.2.2' apply false
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary brand colors -->
+    <color name="colorPrimary">#1DB954</color>
+    <color name="colorPrimaryDark">#169C46</color>
+    <color name="colorAccent">#1DB954</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_primary">#FAFAFA</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="bg_player_bar">#FFFFFF</color>
+    <color name="bg_control_circle">#1DB954</color>
+
+    <!-- Text -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_hint">#BDBDBD</color>
+
+    <!-- Seekbar -->
+    <color name="seekbar_bg">#E0E0E0</color>
+</resources>

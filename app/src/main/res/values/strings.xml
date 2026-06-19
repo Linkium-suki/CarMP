@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MusicPlayer</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="repeat">Repeat</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="back">Back</string>
+    <string name="album_art">Album art</string>
+    <string name="video">Video</string>
+    <string name="no_media_found">No media files found.\nTap refresh to scan again.</string>
+    <string name="permission_denied">Storage permission required to scan media files.</string>
+    <string name="refresh">Refresh</string>
+    <string name="unknown_title">Unknown Title</string>
+    <string name="unknown_artist">Unknown Artist</string>
+</resources>

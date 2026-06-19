@@ -41,64 +41,54 @@ A lightweight audio/video player designed for Android 4.0+ (API 14) car head uni
 - **Android 4.0 (API 14)** 或更高
 - 存储权限（用于扫描媒体文件）
 
-## 构建 Build
+## 构建 Build — 仅需 GitHub，无需本地环境
 
-### 本地构建 Local Build
+**本项目的 CI/CD 工作流会自动安装 Android SDK + Gradle，你不需要在本地安装任何东西！**
 
-```bash
-# 需要 Android SDK + JDK 17
-./gradlew assembleDebug    # Debug APK
-./gradlew assembleRelease  # Release APK (unsigned)
-```
+### 快速开始
 
-APK 输出路径：`app/build/outputs/apk/`
+1. **Fork 或 Push 本仓库到 GitHub**
+2. GitHub Actions 自动运行 → 在 Actions 页面下载 APK
 
-### 生成 Gradle Wrapper
+### 手动触发构建
 
-首次克隆后：
+1. 打开 GitHub 仓库 → **Actions** 标签
+2. 选择 **Build & Release APK**
+3. 点击 **Run workflow** → 等待完成
+4. 下载 **app-debug** artifact → 得到 APK
 
-```bash
-gradle wrapper --gradle-version 8.5
-```
-
-或者如果已安装 Android Studio，它会自动处理。
-
-### 应用签名 Signing (生产环境)
-
-编辑 `app/build.gradle`，在 `android { }` 块中添加签名配置：
-
-```groovy
-signingConfigs {
-    release {
-        storeFile file("keystore.jks")
-        storePassword "your-store-password"
-        keyAlias "your-key-alias"
-        keyPassword "your-key-password"
-    }
-}
-buildTypes {
-    release {
-        signingConfig signingConfigs.release
-    }
-}
-```
-
-## CI/CD (GitHub Actions)
-
-### 自动构建
-
-- **Push 到 main/master** → 构建 Debug + Release APK，上传 Artifact
-- **推送 Tag `v*`** → 构建 APK + 自动创建 GitHub Release
-- **手动触发** → `workflow_dispatch`
-
-### Release 流程
+### 自动发版
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-GitHub Actions 自动构建并发布到 Releases 页面。
+GitHub Actions 自动构建并在 **Releases** 页面发布 APK。
+
+### 应用签名 Signing (可选)
+
+若要发布到应用商店，编辑 `app/build.gradle`，添加签名配置：
+
+```groovy
+android {
+    signingConfigs {
+        release {
+            storeFile file("keystore.jks")
+            storePassword "your-store-password"
+            keyAlias "your-key-alias"
+            keyPassword "your-key-password"
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
+```
+
+然后在 GitHub 仓库 **Settings → Secrets and variables → Actions** 中添加 keystore 文件为 Secret。
 
 ## 项目结构 Project Structure
 
